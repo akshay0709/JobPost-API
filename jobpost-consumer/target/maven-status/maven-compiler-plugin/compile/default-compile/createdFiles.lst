@@ -1,3 +1,3 @@
-org\jobpost\consumer\model\JobPost.class
-org\jobpost\consumer\JobsConsumerVerticle.class
-org\jobpost\consumer\model\JobType.class
+com\jobpost\consumer\model\JobType.class
+com\jobpost\consumer\model\JobPost.class
+com\jobpost\consumer\JobsConsumerVerticle.class
