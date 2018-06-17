@@ -9,7 +9,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.MySQLClient;
-
+import io.vertx.ext.sql.ResultSet;
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.web.Router;
@@ -71,8 +71,11 @@ public class JobSearchVerticle extends AbstractVerticle {
 				if (count >= 1)
 					query.append(" AND");
 
-				if (sKey.equals(JobSearchConstants.JOB_NAME))
-					query.append(" job_name=?");
+				String value = paramsTable.get(sKey);
+				if (sKey.equals(JobSearchConstants.JOB_NAME)) {
+					query.append(" job_name LIKE ?");
+					value = "%"+value+"%";
+				}
 				else if (sKey.equals(JobSearchConstants.JOB_LOCATION))
 					query.append(" country=?");
 				else if (sKey.equals(JobSearchConstants.JOB_POST_DATE))
@@ -82,15 +85,16 @@ public class JobSearchVerticle extends AbstractVerticle {
 				else if (sKey.equals(JobSearchConstants.JOB_TYPE))
 					query.append(" job_type=?");
 
-				params.add(paramsTable.get(sKey));
+				params.add(value);
 				count += 1;
 
 			}
-
+			logger.info(query);
+			logger.info(params);
 			getJobs(sqlClient, routingContext, query, params);
 
 		});
-
+		
 		vertx.createHttpServer().requestHandler(router::accept).listen(config().getInteger("http.port", 8081),
 				result -> {
 					if (result.succeeded()) {
@@ -108,15 +112,14 @@ public class JobSearchVerticle extends AbstractVerticle {
 
 				SQLConnection connection = conn.result();
 
-				connection.querySingleWithParams(query.toString(), params, resultHandler -> {
+				connection.queryWithParams(query.toString(), params, resultHandler -> {
 
 					if (resultHandler.succeeded()) {
-						JsonArray result = resultHandler.result();
-
+						ResultSet result = resultHandler.result();
 						if (result == null) {
 							routingContext.response().end(JobSearchConstants.NO_JOBS);
 						} else {
-							routingContext.response().end(resultHandler.result().encode());
+							routingContext.response().end(resultHandler.result().getResults().toString());
 						}
 
 					} else {

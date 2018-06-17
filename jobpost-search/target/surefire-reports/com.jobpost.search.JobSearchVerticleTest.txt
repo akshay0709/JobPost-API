@@ -1,0 +1,9 @@
+-------------------------------------------------------------------------------
+Test set: com.jobpost.search.JobSearchVerticleTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 123.922 sec <<< FAILURE!
+testGetJobs(com.jobpost.search.JobSearchVerticleTest)  Time elapsed: 123.783 sec  <<< ERROR!
+java.util.concurrent.TimeoutException
+	at io.vertx.ext.unit.impl.TestContextImpl$Step.lambda$run$1(TestContextImpl.java:117)
+	at java.lang.Thread.run(Thread.java:748)
+

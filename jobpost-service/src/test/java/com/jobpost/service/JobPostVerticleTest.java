@@ -66,9 +66,7 @@ public class JobPostVerticleTest {
 					context.assertEquals(response.statusCode(), 200);
 
 					response.bodyHandler(body -> {
-						logger.info("Response");
 						JobPost jobPost = Json.decodeValue(body.toString(), JobPost.class);
-						logger.info(jobPost);
 						context.assertEquals(temp.getJobName(), jobPost.getJobName());
 						async.complete();
 					});
