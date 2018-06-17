@@ -1,25 +1,22 @@
 package com.jobpost.search;
 
-
-
+import java.util.Enumeration;
+import java.util.Hashtable;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.MySQLClient;
-import io.vertx.ext.sql.ResultSet;
+
 import io.vertx.ext.sql.SQLClient;
 import io.vertx.ext.sql.SQLConnection;
-import io.vertx.ext.sql.UpdateResult;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 
+public class JobSearchVerticle extends AbstractVerticle {
 
-
-public class JobSearchVerticle extends AbstractVerticle{
-	
 	private final Logger logger = LoggerFactory.getLogger(JobSearchVerticle.class);
 
 	public static void main(String[] args) {
@@ -29,44 +26,69 @@ public class JobSearchVerticle extends AbstractVerticle{
 
 	@Override
 	public void start(Future<Void> future) {
-		
+
 		Router router = Router.router(vertx);
-		
-		JsonObject sqlConfig = new JsonObject()
-				.put("host", "jobs-mysqlinstance.cuo0vhbk0bzr.us-west-1.rds.amazonaws.com")
-				.put("username", "user")
-				.put("password","Test1234")
-				.put("database", "jobsDB")
-				.put("charset", "UTF-8")
-				.put("queryTimeout", 10000);
-		
-		SQLClient mySQLClient = MySQLClient.createNonShared(vertx, sqlConfig);
-		
+		// Creating MySql connection
+		SQLClient sqlClient = MySQLClient.createNonShared(vertx, config());
+
 		router.get("/jobs").produces("application/json").handler(routingContext -> {
-			String jobName = routingContext.request().getParam("jobName");
-			String location = routingContext.request().getParam("location");
-			JsonArray params = new JsonArray().add(jobName).add(location);
-			logger.info(jobName);
-			mySQLClient.getConnection(conn ->{
-				logger.info("connected");
-				if (conn.succeeded()) {
-			        SQLConnection connection = conn.result();
-			        String getAllProc = "{call GetAllJobs()}";
-			        String selectByLocAndJobName = "SELECT * FROM JOBPOST WHERE JOB_NAME=? AND COUNTRY=?";
-			        connection.queryWithParams(selectByLocAndJobName, params, resultHandler -> {
-			        	if(resultHandler.succeeded()) {
-			        		ResultSet rs = resultHandler.result();
-			        		logger.info(rs);
-			        		routingContext.response().end(rs.toString());
-			        	} else {
-			        		//logger.error("Couldn't get data");
-			        	}
-			        });
-			    }else {
-			    	//logger.info(conn.cause().getMessage());
-			    }
-			});
-			
+			String jobName = routingContext.request().getParam(JobSearchConstants.JOB_NAME);
+			String location = routingContext.request().getParam(JobSearchConstants.JOB_LOCATION);
+			String jobType = routingContext.request().getParam(JobSearchConstants.JOB_TYPE);
+			String postDate = routingContext.request().getParam(JobSearchConstants.JOB_POST_DATE);
+			String payRate = routingContext.request().getParam(JobSearchConstants.JOB_PAY_RATE);
+
+			// Generating based on the request parameters. As per the document -
+			// https://vertx.io/docs/vertx-mysql-postgresql-client/java/
+			// Stored procedures are not supported by MySQLClient.
+
+			StringBuilder query = new StringBuilder();
+			JsonArray params = new JsonArray();
+			query.append(JobSearchConstants.SELECT_QUERY);
+
+			Hashtable<String, String> paramsTable = new Hashtable<>();
+			if (jobName != null)
+				paramsTable.put(JobSearchConstants.JOB_NAME, jobName);
+			if (location != null)
+				paramsTable.put(JobSearchConstants.JOB_LOCATION, location);
+			if (jobType != null)
+				paramsTable.put(JobSearchConstants.JOB_TYPE, jobType);
+			if (postDate != null)
+				paramsTable.put(JobSearchConstants.JOB_POST_DATE, postDate);
+			if (payRate != null)
+				paramsTable.put(JobSearchConstants.JOB_PAY_RATE, payRate);
+
+			if (paramsTable.size() > 0) {
+				query.append(" WHERE");
+			}
+
+			Enumeration k = paramsTable.keys();
+
+			int count = 0;
+
+			while (k.hasMoreElements()) {
+				String sKey = (String) k.nextElement();
+				if (count >= 1)
+					query.append(" AND");
+
+				if (sKey.equals(JobSearchConstants.JOB_NAME))
+					query.append(" job_name=?");
+				else if (sKey.equals(JobSearchConstants.JOB_LOCATION))
+					query.append(" country=?");
+				else if (sKey.equals(JobSearchConstants.JOB_POST_DATE))
+					query.append(" post_date=?");
+				else if (sKey.equals(JobSearchConstants.JOB_PAY_RATE))
+					query.append(" pay_rate=?");
+				else if (sKey.equals(JobSearchConstants.JOB_TYPE))
+					query.append(" job_type=?");
+
+				params.add(paramsTable.get(sKey));
+				count += 1;
+
+			}
+
+			getJobs(sqlClient, routingContext, query, params);
+
 		});
 
 		vertx.createHttpServer().requestHandler(router::accept).listen(config().getInteger("http.port", 8081),
@@ -77,5 +99,34 @@ public class JobSearchVerticle extends AbstractVerticle{
 						future.fail(result.cause());
 					}
 				});
+	}
+
+	private void getJobs(SQLClient sqlClient, RoutingContext routingContext, StringBuilder query, JsonArray params) {
+		sqlClient.getConnection(conn -> {
+			logger.info("Database connection established");
+			if (conn.succeeded()) {
+
+				SQLConnection connection = conn.result();
+
+				connection.querySingleWithParams(query.toString(), params, resultHandler -> {
+
+					if (resultHandler.succeeded()) {
+						JsonArray result = resultHandler.result();
+
+						if (result == null) {
+							routingContext.response().end(JobSearchConstants.NO_JOBS);
+						} else {
+							routingContext.response().end(resultHandler.result().encode());
+						}
+
+					} else {
+						logger.error(resultHandler.cause().getMessage());
+					}
+					connection.close();
+				});
+			} else {
+				logger.info(conn.cause().getMessage());
+			}
+		});
 	}
 }

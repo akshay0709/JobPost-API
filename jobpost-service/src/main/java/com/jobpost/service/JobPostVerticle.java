@@ -1,14 +1,12 @@
 package com.jobpost.service;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.apache.log4j.pattern.PropertiesPatternConverter;
+
 
 import com.jobpost.service.model.JobPost;
 
@@ -40,19 +38,21 @@ public class JobPostVerticle extends AbstractVerticle {
 
 	@Override
 	public void start(Future<Void> future) {
-		
+
+		// Connecting to cloudkarafka.
 		String username = "3ysi7bdb";
 		String password = "Y_f7N4MY6rwtewnjC7mDzZ7HIK42F-df";
 		String jaasTemplate = "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";";
-        String jaasCfg = String.format(jaasTemplate, username, password);
-		
+		String jaasCfg = String.format(jaasTemplate, username, password);
+
 		Properties config = new Properties();
+
 		String brokers = "velomobile-01.srvs.cloudkafka.com:9094, velomobile-02.srvs.cloudkafka.com:9094, velomobile-03.srvs.cloudkafka.com:9094";
-		config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+		config.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
 		config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 		config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonObjectSerializer.class);
 		config.put(ProducerConfig.ACKS_CONFIG, "1");
-		/*config.put(ConsumerConfig.GROUP_ID_CONFIG, "Job_Group");
+		config.put(ConsumerConfig.GROUP_ID_CONFIG, "Job_Group");
 		config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
 		config.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
 		config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
@@ -61,41 +61,28 @@ public class JobPostVerticle extends AbstractVerticle {
 		config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 		config.put("sasl.jaas.config", jaasCfg);
 		config.put("security.protocol", "SASL_SSL");
-		config.put("sasl.mechanism", "SCRAM-SHA-256");*/
-		
-		
+		config.put("sasl.mechanism", "SCRAM-SHA-256");
 
 		KafkaProducer<String, JsonObject> producer = KafkaProducer.create(vertx, config);
 
-		producer.partitionsFor("jobs-topic", resp -> {
+		producer.partitionsFor("3ysi7bdb-jobs", resp -> {
 			resp.result().forEach(part -> logger.info("This is partition info: id={}, topic={}", part.getPartition(),
 					part.getTopic()));
 		});
 
 		Router router = Router.router(vertx);
+
 		router.route("/").handler(routingContext -> {
 			HttpServerResponse resp = routingContext.response();
 			resp.putHeader("content-type", "text/html").end("My first application");
 		});
 
+		// This route adds a job to Kafka queue
 		router.route("/jobs").handler(BodyHandler.create());
 		router.post("/jobs").produces("application/json").handler(routingContext -> {
 			JobPost jobPost = Json.decodeValue(routingContext.getBodyAsString(), JobPost.class);
-			KafkaProducerRecord<String, JsonObject> rec = KafkaProducerRecord.create("jobs-topic", null,
-					routingContext.getBodyAsJson());
 
-			producer.write(rec, resp -> {
-
-				if (resp.succeeded()) {
-					RecordMetadata recMetadata = resp.result();
-					logger.info("Producer created records");
-					jobPost.setId(recMetadata.getOffset());
-				} else {
-					Throwable t = resp.cause();
-					logger.error("Could not send topic");
-				}
-				routingContext.response().end(Json.encodePrettily(jobPost));
-			});
+			produceRecords(producer, routingContext, jobPost);
 
 		});
 
@@ -107,5 +94,20 @@ public class JobPostVerticle extends AbstractVerticle {
 						future.fail(result.cause());
 					}
 				});
+	}
+
+	private void produceRecords(KafkaProducer<String, JsonObject> producer, RoutingContext routingContext,
+			JobPost jobPost) {
+		KafkaProducerRecord<String, JsonObject> rec = KafkaProducerRecord.create("3ysi7bdb-jobs", null,
+				routingContext.getBodyAsJson());
+
+		producer.write(rec, resp -> {
+			if (resp.succeeded()) {
+				logger.info("Added job to Kafka queue");
+			} else {
+				logger.error("Couldn't add job to a queue");
+			}
+			routingContext.response().end(Json.encodePrettily(jobPost));
+		});
 	}
 }

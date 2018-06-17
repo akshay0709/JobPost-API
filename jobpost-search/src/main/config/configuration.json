@@ -1,0 +1,8 @@
+{
+	"host":	"jobs-mysqlinstance.cuo0vhbk0bzr.us-west-1.rds.amazonaws.com",
+	"username": "user",
+	"password": "Test1234",	
+	"database": "jobsDB",
+	"charset":	"UTF-8",
+	"queryTimeout": 100000
+}

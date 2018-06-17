@@ -13,6 +13,7 @@
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <mysql.conn.version>6.0.5</mysql.conn.version>
   </properties>
   <dependencies>
     
@@ -21,6 +22,20 @@
 			<artifactId>vertx-mysql-postgresql-client</artifactId>
 			<version>3.5.2</version>
 	</dependency>
+	
+	<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-jdbc-client</artifactId>
+  <version>3.5.2</version>
+</dependency>
+
+<dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>${mysql.conn.version}</version>
+      <optional>true</optional>
+    </dependency>
+	
 	<dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
