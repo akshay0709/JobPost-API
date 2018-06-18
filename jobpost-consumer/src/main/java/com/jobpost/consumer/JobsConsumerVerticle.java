@@ -13,6 +13,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import com.jobpost.consumer.model.JobPost;
 
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
@@ -48,7 +49,6 @@ public class JobsConsumerVerticle extends AbstractVerticle {
 
 		Properties config = new Properties();
 		String brokers = "velomobile-01.srvs.cloudkafka.com:9094, velomobile-02.srvs.cloudkafka.com:9094, velomobile-03.srvs.cloudkafka.com:9094";
-
 		config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
 		config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 		config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -62,8 +62,19 @@ public class JobsConsumerVerticle extends AbstractVerticle {
 		config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonObjectSerializer.class);
 		config.put("security.protocol", "SASL_SSL");
 		config.put("sasl.mechanism", "SCRAM-SHA-256");
+		
+		
+		
+		// Creating MySql connection - AWS 
+		JsonObject dbConfig = new JsonObject().put(JobConsumerConstants.MYSQL_HOST, System.getenv(JobConsumerConstants.SYS_HOST))
+					.put(JobConsumerConstants.MYSQL_USERNAME, System.getenv(JobConsumerConstants.SYS_USERNAME))
+					.put(JobConsumerConstants.MYSQL_PASSWORD, System.getenv(JobConsumerConstants.SYS_PASSWORD))
+					.put(JobConsumerConstants.MYSQL_DATABASE, System.getenv(JobConsumerConstants.SYS_DATABASE))
+					.put(JobConsumerConstants.MYSQL_CHARSET, System.getenv(JobConsumerConstants.SYS_CHARSET))
+					.put(JobConsumerConstants.MYSQL_TIMEOUT, Integer.parseInt(System.getenv(JobConsumerConstants.SYS_TIMEOUT)));
+		
 
-		SQLClient mySQLClient = MySQLClient.createNonShared(vertx, config());
+		SQLClient mySQLClient = MySQLClient.createNonShared(vertx, dbConfig);
 
 		KafkaConsumer<String, String> consumer = KafkaConsumer.create(vertx, config);
 		consumer.subscribe("3ysi7bdb-jobs", resp -> {

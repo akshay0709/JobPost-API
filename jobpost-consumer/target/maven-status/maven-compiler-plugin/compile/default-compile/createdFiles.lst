@@ -1,0 +1,4 @@
+com\jobpost\consumer\model\JobPost.class
+com\jobpost\consumer\JobsConsumerVerticle.class
+com\jobpost\consumer\JobConsumerConstants.class
+com\jobpost\consumer\model\JobType.class

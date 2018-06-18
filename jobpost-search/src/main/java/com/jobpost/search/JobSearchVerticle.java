@@ -2,10 +2,13 @@ package com.jobpost.search;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.asyncsql.MySQLClient;
@@ -29,7 +32,15 @@ public class JobSearchVerticle extends AbstractVerticle {
 
 		Router router = Router.router(vertx);
 		// Creating MySql connection
-		SQLClient sqlClient = MySQLClient.createNonShared(vertx, config());
+		JsonObject dbConfig = new JsonObject().put(JobSearchConstants.MYSQL_HOST, System.getenv(JobSearchConstants.SYS_HOST))
+				.put(JobSearchConstants.MYSQL_USERNAME, System.getenv(JobSearchConstants.SYS_USERNAME))
+				.put(JobSearchConstants.MYSQL_PASSWORD, System.getenv(JobSearchConstants.SYS_PASSWORD))
+				.put(JobSearchConstants.MYSQL_DATABASE, System.getenv(JobSearchConstants.SYS_DATABASE))
+				.put(JobSearchConstants.MYSQL_CHARSET, System.getenv(JobSearchConstants.SYS_CHARSET))
+				.put(JobSearchConstants.MYSQL_TIMEOUT, Integer.parseInt(System.getenv(JobSearchConstants.SYS_TIMEOUT)));
+	
+		logger.info(dbConfig);
+		SQLClient sqlClient = MySQLClient.createNonShared(vertx, dbConfig);
 
 		router.get("/jobs").produces("application/json").handler(routingContext -> {
 			String jobName = routingContext.request().getParam(JobSearchConstants.JOB_NAME);
