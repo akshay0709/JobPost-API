@@ -52,12 +52,15 @@ public class JobPostVerticleTest {
 
 		JobPost temp = new JobPost();
 		temp.setId(1);
-		temp.setJobName("Java Developer");
-		temp.setJobType(JobType.FullTime);
+		temp.setJobTitle("Java Developer");
+		temp.setAvailability(JobType.FullTime);
 		temp.setPostDate("16/05/2018");
-		temp.setCountry("US");
-		temp.setLanguage("English");
+		temp.setLocation("US");
+		temp.setLanguages("English");
 		temp.setPayRate(60);
+		temp.setExperienceLevel(3);
+		temp.setSkills("Java,Apache Kafka");
+		temp.setCompanyName("RiskSense");
 
 		String jsonString = Json.encodePrettily(temp);
 		vertx.createHttpClient().post(8080, "localhost", "/jobs").putHeader("Content-Type", "application/json")
@@ -67,7 +70,7 @@ public class JobPostVerticleTest {
 
 					response.bodyHandler(body -> {
 						JobPost jobPost = Json.decodeValue(body.toString(), JobPost.class);
-						context.assertEquals(temp.getJobName(), jobPost.getJobName());
+						context.assertEquals(temp.getJobTitle(), jobPost.getJobTitle());
 						async.complete();
 					});
 				}).write(jsonString).end();

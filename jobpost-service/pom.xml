@@ -22,12 +22,13 @@
 			<artifactId>vertx-kafka-client</artifactId>
 			<version>${version.vertx}</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>io.vertx</groupId>
-			<artifactId>vertx-mysql-postgresql-client</artifactId>
-			<version>3.5.2</version>
+			<artifactId>vertx-web-api-contract</artifactId>
+			<version>${version.vertx}</version>
 		</dependency>
-		 
+
 	</dependencies>
 	<build>
 		<plugins>

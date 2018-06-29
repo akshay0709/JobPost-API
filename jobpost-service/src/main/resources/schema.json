@@ -1,0 +1,45 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "JobPost",
+	"type": "object",
+	"properties": {
+		"id": {
+			"description": "The unique identifier",
+			"type": "integer"
+		},
+		"jobTitle": {
+			"description": "Name",
+			"type": "string"
+		},
+		"availability": {
+			"description": "Job availability",
+			"type": "string"
+		},
+		"postDate": {
+			"type": "string"
+		},
+		"location": {
+			"type": "string"
+		},
+		"languages": {
+			"type": "string"
+		},
+		"payRate": {
+			"type": "integer"
+		},
+		"experienceLevel": {
+			"type": "integer"
+		},
+		"companyName": {
+			"type": "string"
+		}
+	},
+	"required": [
+		"jobTitle",
+		"availability",
+		"postDate",
+		"payRate",
+		"companyName",
+		"location"
+	]
+}

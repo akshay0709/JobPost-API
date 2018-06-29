@@ -40,7 +40,11 @@
 			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
-
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-mysql-postgresql-client</artifactId>
+			<version>${version.vertx}</version>
+		</dependency>
 	</dependencies>
 	<modules>
 		<module>jobpost-service</module>

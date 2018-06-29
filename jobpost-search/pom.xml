@@ -1,48 +1,29 @@
 <?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com.jobpost</groupId>
-    <artifactId>jobpost-vertx-kafka</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
-  
-  <artifactId>jobpost-search</artifactId>
-  <name>jobpost-search</name>
-  <url>http://maven.apache.org</url>
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <mysql.conn.version>6.0.5</mysql.conn.version>
-  </properties>
-  <dependencies>
-    
-    <dependency>
-			<groupId>io.vertx</groupId>
-			<artifactId>vertx-mysql-postgresql-client</artifactId>
-			<version>3.5.2</version>
-	</dependency>
-	
-	<dependency>
-  <groupId>io.vertx</groupId>
-  <artifactId>vertx-jdbc-client</artifactId>
-  <version>3.5.2</version>
-</dependency>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.jobpost</groupId>
+		<artifactId>jobpost-vertx-kafka</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
 
-<dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>${mysql.conn.version}</version>
-      <optional>true</optional>
-    </dependency>
-	
-	<dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.22</version>
-    </dependency>
-  </dependencies>
-  <build>
+	<artifactId>jobpost-search</artifactId>
+	<name>jobpost-search</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<mysql.conn.version>6.0.5</mysql.conn.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.22</version>
+		</dependency>
+	</dependencies>
+	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
